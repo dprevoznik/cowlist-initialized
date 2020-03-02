@@ -1,57 +1,76 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import $ from 'jquery';
-import {getCows} from './request';
-import {InputForm} from './form';
+import $ from "jquery";
+import { getCows, postCow } from "./request";
+import { InputForm } from "./form";
+import { CurrentCow } from "./current";
 
 class App extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
-      list: [{'name': 'fred'}]
-    }
+      list: [],
+      current: {
+        name: 'benny',
+        description: 'rodriguez'
+      }
+    };
     this.updateList = this.updateList.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.updateCurrentCow = this.updateCurrentCow.bind(this);
   }
 
   updateList(data) {
-      let newList = [...this.state.list, ...data];
-      this.setState({list : newList});
+    let newList = [...data];
+    this.setState({ list: newList });
+  }
+
+  updateCurrentCow(event) {
+    // // based on cow clicked
+    let name = event.currentTarget.innerHTML;
+    let description = event.currentTarget.dataset.description;
+    // // set state on current      
+    this.setState({
+      current : {
+        name: name,
+        description: description
+      }
+    });
   }
 
   handleSubmit(event) {
     // take in new cow object
     event.preventDefault();
 
-    let cowObj = {
-      name: $('#inputName').val(),
-      description: $('#inputDescription').val()
-    };
-    // run post request with this object and use a callback to..
-      // call get cows with this.updateList callback
+    let cowObj = { name: $("#inputName").val(), description: $("#inputDescription").val() };
 
+    let callback = this.updateList;
+    postCow(cowObj, function() {
+      getCows(callback);
+    });
   }
-  
+
   componentDidMount() {
     getCows(this.updateList);
   }
 
   render() {
     return (
-    <div>
-      Welcome To The Farm!
-      <br />
-      <InputForm onSubmit={this.handleSubmit}/>
-      <br />
-      Meet Our Cows:
-      {this.state.list.map(cow => {
-        return (<div>{cow.name}</div>)
-      })}
-    </div>
-    )
+      <div>
+        Welcome To The Farm!
+        <br />
+        <CurrentCow cow={this.state.current}/>
+        <br />
+        <InputForm onSubmit={this.handleSubmit} />
+        <br />
+        Meet Our Cows:
+        {this.state.list.map(cow => {
+          return <div data-description={cow.description} onClick={this.updateCurrentCow}>{cow.name}</div>;
+        })}
+      </div>
+    );
   }
 }
 
 var mountNode = document.getElementById("app");
-ReactDOM.render(<App/>, mountNode);
+ReactDOM.render(<App />, mountNode);
