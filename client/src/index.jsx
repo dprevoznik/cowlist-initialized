@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import $ from "jquery";
-import { getCows, postCow, updateCow } from "./request";
+import { getCows, postCow, updateCow, deleteCow } from "./request";
 import { InputForm } from "./form";
 import { UpdateForm } from "./update-form";
+import { DeleteForm } from "./delete-form";
 import { CurrentCow } from "./current";
 
 class App extends React.Component {
@@ -16,6 +16,7 @@ class App extends React.Component {
       originalName: '',
       updateName: '',
       updateDescription: '',
+      deleteName: '',
       current: {
         name: 'benny',
         description: '"the jet" rodriguez'
@@ -26,6 +27,7 @@ class App extends React.Component {
     this.updateCurrentCow = this.updateCurrentCow.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleUpdate = this.handleUpdate.bind(this);
+    this.handleDelete = this.handleDelete.bind(this);
   }
 
   updateList(data) {
@@ -47,15 +49,23 @@ class App extends React.Component {
   }
 
   handleSubmit(event) {
-    // take in new cow object
     event.preventDefault();
 
     let cowObj = { name: this.state.inputName, description: this.state.inputDescription };
 
     let callback = this.updateList;
-    postCow(cowObj, function() {
-      getCows(callback);
-    });
+    postCow(cowObj)
+      .then(result => {
+        //console.log('result from posting cow: ', result);
+        return getCows();
+      })
+      .then(({data}) => {
+        console.log(data);
+        this.updateList(data);
+      })
+      .catch(err => {
+        console.log('error in posting cow: ', err);
+      });
   }
 
   handleUpdate(e) {
@@ -65,7 +75,10 @@ class App extends React.Component {
     updateCow(this.state.originalName, {name: this.state.updateName, description: this.state.updateDescription})
       .then(result => {
         console.log('result of handling update: ', result);
-        getCows(callback);
+        return getCows();
+      })
+      .then(({data}) => {
+        this.updateList(data);
       })
       .catch(err => {
         console.log('error handling update: ', err);
@@ -84,11 +97,34 @@ class App extends React.Component {
       this.setState({ updateName: event.target.value });
     } else if (event.target.name === 'updateDescription') {
       this.setState({ updateDescription: event.target.value });
+    } else if (event.target.name === 'deleteName') {
+      this.setState({ deleteName: event.target.value });
     }
   }
 
+  handleDelete(event) {
+    event.preventDefault();
+    deleteCow(this.state.deleteName)
+      .then(result => {
+        console.log('result of deleting cow: ', result);
+        return getCows();
+      })
+      .then(({data}) => {
+        this.updateList(data);
+      })
+      .catch(err => {
+        console.log('error deleting cow and updating render: ', err);
+      });
+  }
+
   componentDidMount() {
-    getCows(this.updateList);
+    getCows()
+      .then(({data}) => {
+        this.updateList(data);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   }
 
   render() {
@@ -103,6 +139,9 @@ class App extends React.Component {
         <br />
         <UpdateForm originalName={this.state.originalName} updateName={this.state.updateName} updateDescription={this.state.updateDescription}
                     onChange={this.handleChange} onUpdate={this.handleUpdate}/>
+        <br />
+        <DeleteForm deleteName={this.state.deleteName} onChange={this.handleChange} handleDelete={this.handleDelete}/>
+        <br />
         Meet Our Cows:
         {this.state.list.map(cow => {
           return <div data-description={cow.description} onClick={this.updateCurrentCow}>{cow.name}</div>;

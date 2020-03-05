@@ -1,28 +1,32 @@
-import $ from 'jquery';
 import axios from 'axios';
 
-export function getCows(callback) {
-  $.get("http://localhost:3000/api/cows", 
-        function(data) {
-          console.log('successfully grabbed cows');
-          callback(data);
-        });
+export function getCows() {
+  return axios.get("http://localhost:3000/api/cows");
 };
 
-export function postCow(cowObj, callback) {
-    var settings = {
+export function postCow(cowObj) {
+    return axios({
       "url": "http://localhost:3000/api/cows",
       "method": "POST",
       "headers": {
         "Content-Type": "application/json"
       },
-      "data": JSON.stringify(cowObj),
-    };
-
-    $.ajax(settings).done(function (response) {
-      console.log(response);
-      callback();
+      "data": JSON.stringify(cowObj)
     });
+  
+    // var settings = {
+    //   "url": "http://localhost:3000/api/cows",
+    //   "method": "POST",
+    //   "headers": {
+    //     "Content-Type": "application/json"
+    //   },
+    //   "data": JSON.stringify(cowObj),
+    // };
+
+    // $.ajax(settings).done(function (response) {
+    //   console.log(response);
+    //   callback();
+    // });
 };
 
 export function updateCow(route, cowObj) {
@@ -34,4 +38,8 @@ export function updateCow(route, cowObj) {
     },
     "data": JSON.stringify(cowObj),
   });
+};
+
+export function deleteCow(cow) {
+  return axios.delete(`http://localhost:3000/api/cows/${cow}`);
 };

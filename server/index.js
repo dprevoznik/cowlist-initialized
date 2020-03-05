@@ -72,4 +72,17 @@ app.put("/api/cows/:id", (req, res) => {
     })
 });
 
+app.delete("/api/cows/:id", (req, res) => {
+  let originalName = req.params.id;
+  con.queryAsync(`DELETE FROM cows WHERE name = ?`, originalName)
+    .then(result => {
+      console.log('result of deleting record: ', result);
+      res.sendStatus(202);
+    })
+    .catch(err => {
+      console.log('error from deleting record: ', err);
+      res.sendStatus(500);
+    })
+});
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
