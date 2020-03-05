@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import axios from 'axios';
 
 export function getCows(callback) {
   $.get("http://localhost:3000/api/cows", 
@@ -22,4 +23,15 @@ export function postCow(cowObj, callback) {
       console.log(response);
       callback();
     });
+};
+
+export function updateCow(route, cowObj) {
+  return axios({
+    "url": `http://localhost:3000/api/cows/${route}`,
+    "method": "PUT",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "data": JSON.stringify(cowObj),
+  });
 };

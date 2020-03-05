@@ -51,4 +51,25 @@ app.post("/api/cows", (req, res) => {
     .catch(err => res.sendStatus(400));
 });
 
+app.put("/api/cows/:id", (req, res) => {
+  let { name, description } = req.body;
+  let originalName = req.params.id;
+  con.queryAsync(`SELECT * FROM cows WHERE name = "${originalName}"`)
+    .then(results => {
+      console.log("Select query results:::", results[0].name);
+      let newName = name === '' ? results[0].name : name;
+      let newDescription = description === '' ? results[0].description : description;
+      let newId = results[0].id;
+      let params = [newName, newDescription, newId];
+      return con.queryAsync(`UPDATE cows SET name = ?, description = ? WHERE id = ?`, params);
+    })
+    .then(result => {
+      res.sendStatus(201);
+    })
+    .catch(err => {
+      console.log('error updating cow: ', err);
+      res.sendStatus(500);
+    })
+});
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
